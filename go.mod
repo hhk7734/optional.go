@@ -1,4 +1,4 @@
-module github.com/hhk7734/go-optional
+module github.com/hhk7734/optional.go
 
 go 1.20
 

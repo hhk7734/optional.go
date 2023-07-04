@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/hhk7734/go-optional"
+	"github.com/hhk7734/optional.go"
 	"github.com/stretchr/testify/assert"
 )
 
