@@ -8,30 +8,45 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestMarshalJSON(t *testing.T) {
-	type stringPointer struct {
+func stringPtr(v string) *string {
+	return &v
+}
+
+func TestNil(t *testing.T) {
+	var sPtr optional.Optional[*string]
+	assert.Nil(t, sPtr)
+	sPtr = optional.New[*string](nil)
+	assert.NotNil(t, sPtr)
+}
+
+func TestStringPtrMarshalJSON(t *testing.T) {
+	type testStruct struct {
 		Value optional.Optional[*string] `json:"value,omitempty"`
 	}
 
-	testString := "test"
-
 	cases := []struct {
-		in   stringPointer
+		in   testStruct
 		want []byte
 	}{
 		{
-			in:   stringPointer{},
+			in:   testStruct{},
 			want: []byte(`{}`),
 		},
 		{
-			in: stringPointer{
+			in: testStruct{
 				Value: optional.New[*string](nil),
 			},
 			want: []byte(`{"value":null}`),
 		},
 		{
-			in: stringPointer{
-				Value: optional.New(&testString),
+			in: testStruct{
+				Value: optional.New(stringPtr("")),
+			},
+			want: []byte(`{"value":""}`),
+		},
+		{
+			in: testStruct{
+				Value: optional.New(stringPtr("test")),
 			},
 			want: []byte(`{"value":"test"}`),
 		},
@@ -43,41 +58,115 @@ func TestMarshalJSON(t *testing.T) {
 			assert.Equal(t, c.want, got)
 		}
 	}
-
 }
 
-func TestUnmarshalJSON(t *testing.T) {
-	type stringPointer struct {
+func TestStringPtrUnmarshalJSON(t *testing.T) {
+	type testStruct struct {
 		Value optional.Optional[*string] `json:"value,omitempty"`
 	}
 
-	testString := "test"
-
 	cases := []struct {
 		in   []byte
-		want stringPointer
+		want testStruct
 	}{
 		{
 			in:   []byte(`{}`),
-			want: stringPointer{},
+			want: testStruct{},
 		},
 		{
 			in: []byte(`{"value":null}`),
-			want: stringPointer{
+			want: testStruct{
 				Value: optional.New[*string](nil),
 			},
 		},
 		{
+			in: []byte(`{"value":""}`),
+			want: testStruct{
+				Value: optional.New(stringPtr("")),
+			},
+		},
+		{
 			in: []byte(`{"value":"test"}`),
-			want: stringPointer{
-				Value: optional.New(&testString),
+			want: testStruct{
+				Value: optional.New(stringPtr("test")),
 			},
 		},
 	}
 
 	for _, c := range cases {
-		var got stringPointer
+		var got testStruct
 		err := json.Unmarshal(c.in, &got)
+		if assert.NoError(t, err) {
+			assert.Equal(t, c.want, got)
+		}
+	}
+}
+
+func TestStringUnmarshalJSON(t *testing.T) {
+	type testStruct struct {
+		Value optional.Optional[string] `json:"value,omitempty"`
+	}
+
+	cases := []struct {
+		in   []byte
+		want testStruct
+	}{
+		{
+			in:   []byte(`{}`),
+			want: testStruct{},
+		},
+		{
+			in: []byte(`{"value":""}`),
+			want: testStruct{
+				Value: optional.New(""),
+			},
+		},
+		{
+			in: []byte(`{"value":"test"}`),
+			want: testStruct{
+				Value: optional.New("test"),
+			},
+		},
+	}
+
+	for _, c := range cases {
+		var got testStruct
+		err := json.Unmarshal(c.in, &got)
+		if assert.NoError(t, err) {
+			assert.Equal(t, c.want, got)
+		}
+	}
+}
+
+func TestStringMarshalJSON(t *testing.T) {
+	type testStruct struct {
+		Value optional.Optional[string] `json:"value,omitempty"`
+	}
+
+	cases := []struct {
+		in   testStruct
+		want []byte
+	}{
+		{
+			in:   testStruct{},
+			want: []byte(`{}`),
+		},
+		{
+			in: testStruct{
+				Value: optional.New(""),
+			},
+			want: []byte(`{"value":""}`),
+		},
+		{
+			in: testStruct{
+				Value: optional.New("test"),
+			},
+			want: []byte(`{"value":"test"}`),
+		},
+	}
+
+	for _, c := range cases {
+		got, err := json.Marshal(c.in)
 		if assert.NoError(t, err) {
 			assert.Equal(t, c.want, got)
 		}
